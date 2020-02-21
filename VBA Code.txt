@@ -1,0 +1,122 @@
+Sub stock_data()
+
+'declare worksheet
+Dim worksheetcount As Worksheet
+
+'loop through each sheet
+For Each worksheetcount In Worksheets
+worksheetcount.Activate
+
+'create title of the result
+Range("I1").Value = "Ticker"
+Range("J1").Value = "Yearly Change"
+Range("K1").Value = "Percent Change"
+Range("L1").Value = "Total Stock Volume"
+
+'initialize value of total stock volume and num of rows of the result
+Count = 2
+Sum = 0
+
+'initialize the first open value
+Dim openvalue As Double
+openvalue = Cells(2, 3).Value
+
+'check if the next line is the last day of the year
+For i = 3 To Cells(Rows.Count, 1).End(xlUp).Row + 1
+Dim first As Long
+Dim second As Long
+first = Cells(i, 2).Value
+second = Cells(i - 1, 2).Value
+If second - first > 0 Then
+
+'show all tickers
+Cells(Count, 9).Value = Cells(i - 1, 1).Value
+
+Dim yearlychange As Double
+Dim closevalue As Double
+Dim percentagechange As Double
+
+'calculate yearlychange
+closevalue = Cells(i - 1, 6).Value
+yearlychange = closevalue - openvalue
+Cells(Count, 10).Value = yearlychange
+
+'check if there is division issue
+If openvalue = 0 Then
+percentagechange = 0
+
+Else
+
+'calculate percentage change
+percentagechange = yearlychange / openvalue
+Cells(Count, 11).Value = FormatPercent(percentagechange, 2)
+
+End If
+
+'set the open value of each year
+openvalue = Cells(i, 3).Value
+
+'calculate total stock volume each year and reset the volume for a new year
+Sum = Sum + Cells(i - 1, 7).Value
+Cells(Count, 12).Value = Sum
+Count = Count + 1
+Sum = 0
+
+'add up all the stock volume
+Else
+Sum = Sum + Cells(i - 1, 7).Value
+End If
+
+Next i
+
+'set negative yearly change be red and positive yearly change be green
+For j = 2 To Cells(Rows.Count, 9).End(xlUp).Row
+If Cells(j, 10).Value < 0 Then
+Cells(j, 10).Interior.ColorIndex = 3
+
+Else
+Cells(j, 10).Interior.ColorIndex = 4
+
+End If
+
+Next j
+
+'show result titles and set initial values
+Range("O2").Value = "Greatest % Increase"
+Range("O3").Value = "Greatest % Decrease"
+Range("O4").Value = "Greatest Total Volume"
+Range("P1").Value = "Ticker"
+Range("Q1").Value = "Value"
+Range("Q2").Value = Cells(2, 11).Value
+Range("P2").Value = Cells(2, 9).Value
+Range("Q3").Value = Cells(2, 11).Value
+Range("P3").Value = Cells(2, 9).Value
+Range("Q4").Value = Cells(2, 12).Value
+Range("P4").Value = Cells(2, 9).Value
+
+For k = 2 To Cells(Rows.Count, 9).End(xlUp).Row
+
+'find the max percentage change
+If Range("Q2").Value < Cells(k, 11).Value Then
+Range("Q2").Value = FormatPercent(Cells(k, 11).Value, 2)
+Range("P2").Value = Cells(k, 9).Value
+End If
+
+'find the min percentage change
+If Range("Q3").Value > Cells(k, 11).Value Then
+Range("Q3").Value = FormatPercent(Cells(k, 11).Value, 2)
+Range("P3").Value = Cells(k, 9).Value
+End If
+
+'find max stock volume
+If Range("Q4").Value < Cells(k, 12).Value Then
+Range("Q4").Value = Cells(k, 12).Value
+Range("P4").Value = Cells(k, 9).Value
+End If
+
+Next k
+
+Next
+
+End Sub
+
